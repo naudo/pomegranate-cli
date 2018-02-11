@@ -30,7 +30,7 @@ def main():
         raise Exception("More than list found for {}".format(args.list))
     else:
         print("Found List with ID {}".format(wl))
-    wl = wl[0]
+        wl = wl[0]
 
     if args.add:
         # wl = WordList.query.filter(WordList.name == args.list).all()
@@ -44,13 +44,10 @@ def main():
         study(wl)
 
 
-class Word:
-    def __init__(self, word):
-        self.word = word
-
-
 def study(ls=DEFAULT_LIST):
     global START_POINT
+    if len(ls.entries) == 0:
+        raise Exception("Nothing to study in this list")
     entry = ls.entries[0]
     while True:
         resp = normalize_input_confirmations(input("Do you know this: {}? (Y/N)".format(entry.word)))
