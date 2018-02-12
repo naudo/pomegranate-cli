@@ -1,9 +1,10 @@
-import argparse
 import pprint
 
+from tabulate import tabulate
 
-from core.input import normalize_input_confirmations, AFFIRMATIVE_CONFIRMATION, NEGATIVE_CONFIRMATION
+from core.input import normalize_input_confirmations, AFFIRMATIVE_CONFIRMATION, NEGATIVE_CONFIRMATION, build_arg_parser
 from data.models import *
+import collections
 
 DEFAULT_LIST = "default"
 
@@ -11,8 +12,10 @@ DEFAULT_LIST = "default"
 START_POINT = None
 
 
+pp = pprint.PrettyPrinter(indent=4)
+
+
 def main():
-    pp = pprint.PrettyPrinter(indent=4)
 
     # with db:
     create_tables()
@@ -48,41 +51,21 @@ def study(ls=DEFAULT_LIST):
     global START_POINT
     if len(ls.entries) == 0:
         raise Exception("Nothing to study in this list")
-    entry = ls.entries[0]
-    while True:
+    entries = ls.entries
+
+    while len(entries) > 0:
+        entry = entries[0]
         resp = normalize_input_confirmations(input("Do you know this: {}? (Y/N)".format(entry.word)))
-        feedback = WordListEntryFeedback(word_list_entry_id=entry.id)
-
-        if resp == AFFIRMATIVE_CONFIRMATION:
-            feedback.feedback = True
-
-            entry = ls.entries[1]
-
-        elif resp == NEGATIVE_CONFIRMATION:
-            feedback.feedback = False
-            entry = ls.entries[2]
+        feedback = WordListEntryFeedback(word_list_entry_id=entry.id, feedback= True if resp == AFFIRMATIVE_CONFIRMATION else False)
 
         session.add(feedback)
         session.commit()
+        del entries[0]
 
         if not START_POINT:
             START_POINT = feedback.id
 
-
-def build_arg_parser():
-    parser = argparse.ArgumentParser()
-    # study = parser.add_mutually_exclusive_group()
-
-    lists = parser.add_mutually_exclusive_group()
-    lists.add_argument("--create", help="Create a new List")
-
-    add_words = parser.add_mutually_exclusive_group()
-    add_words.add_argument("--add", help="Add a word to a list")
-
-    parser.add_argument("-l", "--list",
-                        help="The list to add words to. If not provided, will use a list named default",
-                        default="default")
-    return parser.parse_args()
+    summary()
 
 
 def add_words(db, word, ls=DEFAULT_LIST):
@@ -94,10 +77,30 @@ def add_words(db, word, ls=DEFAULT_LIST):
     found_lists[0]["entries"].append({"word": word})
 
 
+def summary():
+    print("\nThanks for playing!")
+    study_session_results = session.query(WordListEntryFeedback) \
+        .filter(WordListEntryFeedback.id >= START_POINT).all()
+
+    print(study_session_results)
+
+    results = [
+        [x.entry.word for x in study_session_results if not x.feedback],
+        [x.entry.word for x in study_session_results if x.feedback],
+    ]
+
+    print("Words you knew")
+    print(tabulate(results[0]))
+
+    print("Words to study for next time")
+    print(tabulate(results[1]))
+
+    pp.pprint(results)
+
+
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\nThanks for playing!")
-        study_session_results = session.query(WordListEntryFeedback).filter(WordListEntryFeedback.id >= START_POINT).all()
-        print(study_session_results)
+        summary()
+

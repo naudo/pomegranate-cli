@@ -4,6 +4,9 @@ from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint, Bo
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
+import logging
+logging.basicConfig()
+logging.getLogger('sqlalchemy.engine').setLevel(logging.WARN)
 
 engine = create_engine('sqlite:///study.db', echo=True)
 Base = declarative_base(engine)
