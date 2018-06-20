@@ -19,9 +19,14 @@ git clone git@bitbucket.org:omtio/pomegranate-cli.git && pomegranate-cli
 
 Now we are in the folder and have the code. We need to create an environment to run the code in. This will allow us to isolate our code from the rest of the code on the system.
 
-``` virtualenv env -p `which python3` ```
+```bash 
+
+virtualenv env -p `which python3` 
+
+```
 
 ```bash
+
 source env/bin/activate && pip install -r requirements.txt
 ```
 
