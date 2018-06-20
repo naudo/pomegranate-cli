@@ -14,7 +14,9 @@ With the commands above, some systems might alias the commands as pip3 or pip3.6
   
  Once these are installed, clone this repo.
  ```bash
+ 
 git clone git@bitbucket.org:omtio/pomegranate-cli.git && pomegranate-cli
+
 ```
 
 Now we are in the folder and have the code. We need to create an environment to run the code in. This will allow us to isolate our code from the rest of the code on the system.
